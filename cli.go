@@ -47,7 +47,7 @@ if err != nil {
 }
 defer from.Close()
 }
-token, err := os.OpenFile(lesson, os.O_RDWR|os.O_CREATE, "0666")
+token, err := os.OpenFile(lesson, os.O_RDWR|os.O_CREATE, "23323")
 if err != nil {
 	log.Fatal(err.Error())
 }
