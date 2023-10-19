@@ -1,0 +1,75 @@
+import (
+ "context"
+ "fmt"
+ "log"
+ "net"
+
+ "go.mongodb.org/mongo-driver/bson"
+ "go.mongodb.org/mongo-driver/mongo"
+ "go.mongodb.org/mongo-driver/mongo/options"
+ "google.golang.org/grpc"
+)
+
+const (
+ port       = ":50051"
+ dbHost     = "localhost"
+ dbPort     = 27017
+ dbName     = "english_learning"
+ collection = "lessons"
+)
+
+type server struct {
+}
+
+type Lesson struct {
+ ID      string bson:"_id,omitempty"
+ Text    string bson:"text"
+ Translation string bson:"translation"
+}
+
+type CreateLessonRequest struct {
+ Text        string json:"text"
+ Translation string json:"translation"
+}
+
+type CreateLessonResponse struct {
+ ID string json:"id"
+}
+
+func (s *server) CreateLesson(ctx context.Context, req *CreateLessonRequest) (*CreateLessonResponse, error) {
+ lesson := Lesson{
+  Text:        req.Text,
+  Translation: req.Translation,
+ }
+
+ client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", dbHost, dbPort)))
+ if err != nil {
+  return nil, err
+ }
+ defer client.Disconnect(context.TODO())
+
+ coll := client.Database(dbName).Collection(collection)
+
+ result, err := coll.InsertOne(context.TODO(), lesson)
+ if err != nil {
+  return nil, err
+ }
+
+ insertedID := result.InsertedID.(string)
+
+ return &CreateLessonResponse{
+  ID: insertedID,
+ }, nil
+}
+
+func main() {
+ lis, err := net.Listen("tcp", port)
+ if err != nil {
+  log.Fatalf("failed to listen: %v", err)
+ }
+ s := grpc.NewServer()
+ RegisterLessonServiceServer(s, &server{})
+ if err := s.Serve(lis); err != nil {
+  log.Fatalf("failed to serve: %v", err)
+ }
+}
