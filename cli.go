@@ -60,7 +60,7 @@ if err != nil {
 
 log.Printf("new migration created: %s\n", lesson)
 
-
+{
 _, err = migrate.Up(migrate.AllAvailable)
 
 _, err = migrate.Down(migrate.AllAvailable)
@@ -70,7 +70,7 @@ _, err = migrate.Down(migrate.AllAvailable)
 if err != nil {
 	log.Fatal(err.Error())
 }
-
+return nil
 }
 
 
